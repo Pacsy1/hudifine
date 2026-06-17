@@ -1,5 +1,6 @@
 package com.hudifine.client.hud;
 
+import com.hudifine.client.util.MinecraftCompat;
 import dev.hudifine.api.provider.HudifineProviderRegistry;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -210,6 +211,14 @@ public final class HudDataSource {
             case "world.yaw" -> player != null ? normalizeYaw(player.getYRot()) : 0.0;
             case "world.dimension" -> world != null ? world.dimension().identifier().toString() : "minecraft:overworld";
             case "world.biome" -> getBiomeName();
+            case "world.timeTicks" -> world != null ? world.getOverworldClockTime() : 0L;
+            case "world.timeOfDayTicks" -> getTimeOfDayTicks(world);
+            case "world.timeString24" -> toMinecraftTimeString24(getTimeOfDayTicks(world));
+            case "world.dayProgressPct" -> (getTimeOfDayTicks(world) / 24000.0) * 100.0;
+            case "world.isDay" -> isDayTimeTicks(getTimeOfDayTicks(world));
+            case "world.isNight" -> !isDayTimeTicks(getTimeOfDayTicks(world));
+            case "world.ticksUntilSunrise" -> ticksUntil(getTimeOfDayTicks(world), 0);
+            case "world.ticksUntilSunset" -> ticksUntil(getTimeOfDayTicks(world), 12000);
             case "world.lightLevel" -> getLightLevel(LightLayer.BLOCK);
             case "world.skyLightLevel" -> getLightLevel(LightLayer.SKY);
             case "world.moonPhase" -> 0;
@@ -229,6 +238,8 @@ public final class HudDataSource {
             case "perf.fpsMax" -> maxInt(fpsWindow);
             case "perf.frameTime" -> lastFrameMs;
             case "perf.frameTimeAvg" -> avgDouble(frameMsWindow);
+            case "perf.frameTimeMin" -> minDouble(frameMsWindow);
+            case "perf.frameTimeMax" -> maxDouble(frameMsWindow);
             case "perf.tps" -> 20.0;
             case "perf.mspt" -> 50.0;
             case "perf.chunkUpdates" -> 0;
@@ -322,8 +333,8 @@ public final class HudDataSource {
             case "env.nearestPlayerName" -> nearestPlayerName();
 
             case "game.isPaused" -> client.isPaused();
-            case "game.isInGui" -> client.screen != null;
-            case "game.isInventoryOpen" -> client.screen instanceof InventoryScreen;
+            case "game.isInGui" -> MinecraftCompat.getCurrentScreen(client) != null;
+            case "game.isInventoryOpen" -> MinecraftCompat.getCurrentScreen(client) instanceof InventoryScreen;
             case "game.isInBed" -> player != null && player.isSleeping();
             case "game.isRiding" -> player != null && player.getVehicle() != null;
             case "game.ridingEntityType" -> player != null && player.getVehicle() != null ? entityType(player.getVehicle()) : "";
@@ -348,7 +359,7 @@ public final class HudDataSource {
             case "server.ping" -> getPlayerPing();
             case "server.tps" -> 20.0;
             case "server.isLAN" -> client.getCurrentServer() != null && client.getCurrentServer().isLan();
-            case "server.isSingleplayer" -> client.isSingleplayer();
+            case "server.isSingleplayer" -> MinecraftCompat.isSingleplayer(client);
             case "server.version" -> client.getLaunchedVersion();
 
             case "clock.hour" -> LocalDateTime.now().getHour();
@@ -416,8 +427,26 @@ public final class HudDataSource {
         return client.level.getBrightness(type, client.player.blockPosition());
     }
 
+    private static int getTimeOfDayTicks(ClientLevel world) {
+        if (world == null) {
+            return 0;
+        }
+
+        return (int) Math.floorMod(world.getOverworldClockTime(), 24000L);
+    }
+
+    private static boolean isDayTimeTicks(int timeOfDayTicks) {
+        return timeOfDayTicks < 12000;
+    }
+
+    private static int ticksUntil(int currentTicks, int targetTicks) {
+        int current = Math.floorMod(currentTicks, 24000);
+        int target = Math.floorMod(targetTicks, 24000);
+        return Math.floorMod(target - current, 24000);
+    }
+
     private String getWorldName() {
-        if (client.isSingleplayer()) {
+        if (MinecraftCompat.isSingleplayer(client)) {
             return "singleplayer";
         }
 
@@ -426,7 +455,7 @@ public final class HudDataSource {
     }
 
     private String getSeedLabel() {
-        if (!client.isSingleplayer()) {
+        if (!MinecraftCompat.isSingleplayer(client)) {
             return "hidden";
         }
 
@@ -626,6 +655,14 @@ public final class HudDataSource {
         return String.format(Locale.ROOT, "%d:%02d %s", displayHour, minute, suffix);
     }
 
+    private static String toMinecraftTimeString24(int ticks) {
+        int normalized = Math.floorMod(ticks, 24000);
+        int totalMinutes = (int) (((normalized + 6000L) % 24000L) * 60L / 1000L);
+        int hour = (totalMinutes / 60) % 24;
+        int minute = totalMinutes % 60;
+        return String.format(Locale.ROOT, "%02d:%02d", hour, minute);
+    }
+
     private double nearestPlayerDistance() {
         ensureNearestPlayerCache();
         return cachedNearestPlayerDistance;
@@ -756,7 +793,7 @@ public final class HudDataSource {
     }
 
     private String getServerName() {
-        if (client.isSingleplayer()) {
+        if (MinecraftCompat.isSingleplayer(client)) {
             return "singleplayer";
         }
 
@@ -855,6 +892,32 @@ public final class HudDataSource {
         }
 
         return sum / (double) deque.size();
+    }
+
+    private static double minDouble(Deque<Double> deque) {
+        if (deque.isEmpty()) {
+            return 0.0;
+        }
+
+        double min = Double.POSITIVE_INFINITY;
+        for (double value : deque) {
+            min = Math.min(min, value);
+        }
+
+        return min;
+    }
+
+    private static double maxDouble(Deque<Double> deque) {
+        if (deque.isEmpty()) {
+            return 0.0;
+        }
+
+        double max = Double.NEGATIVE_INFINITY;
+        for (double value : deque) {
+            max = Math.max(max, value);
+        }
+
+        return max;
     }
 
     private static String entityType(Entity entity) {

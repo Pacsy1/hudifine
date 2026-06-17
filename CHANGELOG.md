@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.1
+
+### Fixed
+- Fixed widget dragging regression on Minecraft 26.2 where drag updates could stop because mouse move/release handling depended on fragile current-screen lookup.
+- Fixed chat click coordinate mismatch by using scaled mouse coordinates for HUD hit-testing and drag start.
+
+### Changed
+- Version bumped to 2.0.1.
+- Default generated script metadata version bumped to 2.0.1.
+
 ## 2.0.0
 
 ### Added

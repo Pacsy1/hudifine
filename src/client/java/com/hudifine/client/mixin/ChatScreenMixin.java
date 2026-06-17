@@ -87,7 +87,10 @@ public abstract class ChatScreenMixin extends Screen {
 
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
     private void hudifine$mouseClicked(MouseButtonEvent click, boolean doubled, CallbackInfoReturnable<Boolean> cir) {
-        if (click.button() == 0 && hudifine$isPlusHovered(click.x(), click.y())) {
+        double scaledMouseX = hudifine$scaledMouseX();
+        double scaledMouseY = hudifine$scaledMouseY();
+
+        if (click.button() == 0 && hudifine$isPlusHovered(scaledMouseX, scaledMouseY)) {
             HudifineClientMod.openEditor((Screen) (Object) this);
             cir.setReturnValue(true);
             return;
@@ -100,8 +103,8 @@ public abstract class ChatScreenMixin extends Screen {
         boolean shiftDown = (click.modifiers() & GLFW.GLFW_MOD_SHIFT) != 0;
         boolean handled = HudifineClientMod.getManager().handleMouseClick(
             (Screen) (Object) this,
-            click.x(),
-            click.y(),
+            scaledMouseX,
+            scaledMouseY,
             click.button(),
             shiftDown
         );

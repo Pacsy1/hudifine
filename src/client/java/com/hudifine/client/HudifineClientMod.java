@@ -2,6 +2,7 @@ package com.hudifine.client;
 
 import com.hudifine.client.hud.HudScriptManager;
 import com.hudifine.client.ui.HudScriptEditorScreen;
+import com.hudifine.client.util.MinecraftCompat;
 import dev.hudifine.api.hud.HudifineHudRegistry;
 import dev.hudifine.api.provider.HudifineProviderRegistry;
 import net.fabricmc.api.ClientModInitializer;
@@ -37,6 +38,6 @@ public final class HudifineClientMod implements ClientModInitializer {
 
     public static void openEditor(Screen parent) {
         Minecraft client = Minecraft.getInstance();
-        client.setScreen(new HudScriptEditorScreen(parent, manager, null));
+        MinecraftCompat.setScreen(client, new HudScriptEditorScreen(parent, manager, null));
     }
 }

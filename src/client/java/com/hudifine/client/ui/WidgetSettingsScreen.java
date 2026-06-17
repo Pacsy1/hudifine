@@ -4,6 +4,7 @@ import com.hudifine.client.hud.HudScriptManager;
 import com.hudifine.client.hud.HudWidgetInstance;
 import com.hudifine.client.script.HudAst;
 import com.hudifine.client.script.HudExpressionEngine;
+import com.hudifine.client.util.MinecraftCompat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -143,7 +144,7 @@ public final class WidgetSettingsScreen extends Screen {
     @Override
     public void onClose() {
         if (minecraft != null) {
-            minecraft.setScreen(parent);
+            MinecraftCompat.setScreen(minecraft, parent);
         }
     }
 

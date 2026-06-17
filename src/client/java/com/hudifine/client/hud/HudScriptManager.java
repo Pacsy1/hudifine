@@ -10,6 +10,7 @@ import com.hudifine.client.script.HudAst;
 import com.hudifine.client.script.HudExpressionEngine;
 import com.hudifine.client.script.HudScriptParser;
 import com.hudifine.client.ui.WidgetSettingsScreen;
+import com.hudifine.client.util.MinecraftCompat;
 import dev.hudifine.api.hud.HudifineHudRegistry;
 import dev.hudifine.api.provider.HudifineProviderRegistry;
 import java.io.IOException;
@@ -51,7 +52,7 @@ public final class HudScriptManager {
         meta {
           name: "Status HUD"
           author: "hudifine"
-                                        version: "2.0.0"
+                                                                                version: "2.0.1"
         }
 
         settings {
@@ -1076,7 +1077,7 @@ public final class HudScriptManager {
                     return;
                 }
                 HudWidgetInstance target = settingsTarget == null ? targets.get(0) : settingsTarget;
-                client.setScreen(new WidgetSettingsScreen(parent, this, target));
+                MinecraftCompat.setScreen(client, new WidgetSettingsScreen(parent, this, target));
             }
             case DUPLICATE -> {
                 duplicateWidgets(targets);

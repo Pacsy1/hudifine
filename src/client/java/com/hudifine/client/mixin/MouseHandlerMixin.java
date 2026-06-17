@@ -4,8 +4,6 @@ import com.hudifine.client.HudifineClientMod;
 import com.mojang.blaze3d.platform.Window;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
-import net.minecraft.client.gui.screens.ChatScreen;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonInfo;
 import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Final;
@@ -22,9 +20,6 @@ public abstract class MouseHandlerMixin {
     private Minecraft minecraft;
 
     @Shadow
-    private MouseButtonInfo activeButton;
-
-    @Shadow
     public abstract double getScaledXPos(Window window);
 
     @Shadow
@@ -39,12 +34,8 @@ public abstract class MouseHandlerMixin {
             return;
         }
 
-        Screen screen = this.minecraft.screen;
-        if (!(screen instanceof ChatScreen)) {
-            return;
-        }
-
-        boolean leftPressed = this.isLeftPressed() || GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
+        long windowHandle = this.minecraft.getWindow().handle();
+        boolean leftPressed = this.isLeftPressed() || GLFW.glfwGetMouseButton(windowHandle, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
         if (!leftPressed) {
             return;
         }
@@ -65,11 +56,6 @@ public abstract class MouseHandlerMixin {
 
         if (action == GLFW.GLFW_PRESS && (button.button() == 0 || button.button() == 1)) {
             HudifineClientMod.getManager().recordGlobalClick(button.button());
-        }
-
-        Screen screen = this.minecraft.screen;
-        if (!(screen instanceof ChatScreen)) {
-            return;
         }
 
         if (button.button() != 0) {

@@ -2,6 +2,7 @@ package com.hudifine.client.ui;
 
 import com.hudifine.client.hud.HudScriptManager;
 import com.hudifine.client.hud.HudWidgetInstance;
+import com.hudifine.client.util.MinecraftCompat;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.MultiLineEditBox;
@@ -79,7 +80,7 @@ public final class HudScriptEditorScreen extends Screen {
             return;
         }
 
-        minecraft.setScreen(null);
+        MinecraftCompat.setScreen(minecraft, null);
     }
 
     @Override
@@ -90,7 +91,7 @@ public final class HudScriptEditorScreen extends Screen {
     @Override
     public void onClose() {
         if (minecraft != null) {
-            minecraft.setScreen(parent);
+            MinecraftCompat.setScreen(minecraft, parent);
         }
     }
 
